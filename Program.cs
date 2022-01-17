@@ -1,34 +1,41 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
 using CommandLine;
+using Spectre.Console;
+using TodoList.Models;
 
 namespace TodoList
 {
-    class Category
+    public class Category
     {
-        private readonly string _categoryName;
-        private readonly IList<Objective> _objectives;
+        public string CategoryName { get; set; }
+        public IList<Objective> Objectives { get; set; }
 
         public Category(string categoryName)
         {
-            _categoryName = categoryName;
-            _objectives = new List<Objective>();
+            CategoryName = categoryName;
+            Objectives = new List<Objective>();
         }
     }
 
-    internal class Objective
+    public class Objective
     {
-        private readonly string _name;
-        private readonly string _description;
+        public string Name { get; set; }
+        public string? Description { get; set; }
 
-        public Objective(string name, string description)
+        public Objective(string name, string? description = null)
         {
-            _name = name;
-            _description = description;
+            Name = name;
+            Description = description;
         }
     }
 
     class Program
     {
+        private static IList<Category> _categories = new List<Category>
+        {
+            new Category("Test category")
+        };
+
         public class BaseOptions
         {
             [Option('f', "force", Required = false, HelpText = "Force a certain command to be executed.")]
@@ -43,14 +50,21 @@ namespace TodoList
             
             [Option('o', "objectives", Required = false, HelpText = "...", SetName = "create", Separator = ',')]
             public IEnumerable<string> Objectives { get; set; } = new List<string>();
+        }
+        
+        [Verb("list", HelpText = "List ...")]
+        class ListOptions
+        {
             
         }
 
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<BaseOptions, CategoryOptions>(args)
+            Parser.Default
+                .ParseArguments<BaseOptions, CategoryOptions, ListOptions>(args)
                 .WithParsed<BaseOptions>(HandleBaseOptions)
                 .WithParsed<CategoryOptions>(HandleCreateOptions)
+                .WithParsed<ListOptions>(HandleListOptions)
                 .WithNotParsed(HandleNonParsed);
         }
 
@@ -62,6 +76,26 @@ namespace TodoList
         private static void HandleCreateOptions(CategoryOptions categoryOptions)
         {
             // throw new NotImplementedException();
+        }
+
+        private static void HandleListOptions(ListOptions obj)
+        {
+            var storage = new Storage();
+
+            var boards = storage.GetModelByName<Board>("Bier").ToList();
+
+            var categories = new List<Panel>();
+
+            foreach (var category in boards.First().Categories)
+            {
+                var panel = new Panel("some objective")
+                    .Header(category.CategoryName)
+                    .RoundedBorder();
+                
+                categories.Add(panel);
+            }
+            
+            AnsiConsole.Write(new Columns(categories));
         }
 
         private static void HandleNonParsed(IEnumerable<Error> errors)
