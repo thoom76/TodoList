@@ -5,42 +5,60 @@ namespace TodoList;
 
 public class Storage : IDisposable
 {
-    private readonly ILiteDatabase _db;
+    private static readonly ILiteDatabase _db;
 
-    public Storage()
+    static Storage()
     {
         _db = new LiteDatabase("Todo.db");
     }
     
-    public IEnumerable<TModel> GetModelByName<TModel>(string name) 
+    public static IEnumerable<TModel> GetAllModels<TModel>() 
         where TModel : IModel
     {
         var collection = _db.GetCollection<TModel>(typeof(TModel).Name);
         var col = collection.Query()
-            .Where(o => o.Name.Contains(name))
             .ToEnumerable();
+
         return col;
     }
+    
+    public static IEnumerable<TModel> GetModelsByName<TModel>(string name) 
+        where TModel : IModel
+    {
+        var collection = _db.GetCollection<TModel>(typeof(TModel).Name);
+        return collection.Query()
+            .Where(o => o.Name.Contains(name))
+            .ToEnumerable();
+    }
+    
+    public static TModel? GetModelByName<TModel>(string name) 
+        where TModel : IModel
+    {
+        var collection = _db.GetCollection<TModel>(typeof(TModel).Name);
+        return collection.Query()
+            .Where(o => o.Name == name)
+            .SingleOrDefault();
+    }
 
-    public TModel? GetModelById<TModel>(Guid id)
+    public static TModel? GetModelById<TModel>(Guid id)
         where TModel : IModel
     {
         var collection = _db.GetCollection<TModel>(typeof(TModel).Name);
         return collection.FindById(id);
     }
-    
-    public void UpdateModel<TModel>(TModel board)
+
+    public static Guid InsertModel<TModel>(TModel model)
         where TModel : IModel
     {
         var collection = _db.GetCollection<TModel>(typeof(TModel).Name);
-        _ = collection.Update(board);
+        return collection.Insert(model).AsGuid;
     }
 
-    public void InsertModel<TModel>(TModel board)
+    public static bool UpdateModel<TModel>(TModel model)
         where TModel : IModel
     {
         var collection = _db.GetCollection<TModel>(typeof(TModel).Name);
-        _ = collection.Insert(board);
+        return collection.Update(model);
     }
 
     public void Dispose()
