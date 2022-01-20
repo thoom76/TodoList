@@ -1,9 +1,10 @@
-﻿using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
-using CommandLine;
-using Spectre.Console;
-using TodoList.Models;
+﻿using CommandLine;
+using Serilog;
+using Serilog.Sinks.Spectre;
+using TodoList.Extensions;
 using TodoList.ProgramArguments;
+using TodoList.ProgramArguments.Verbs;
+using TodoList.ProgramArguments.VerbSets;
 
 namespace TodoList
 {
@@ -11,22 +12,24 @@ namespace TodoList
     {
         private static void Main(string[] args)
         {
-            _ = Parser.Default.ParseSetArguments<CreationVerbSet, ListVerb>(args, OnVerbSetParsed);
-        }
+            // Configure Serilog to work with spectre console.
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Spectre("{Timestamp:HH:mm:ss} [{Level}] {Message:lj}{NewLine}{Exception}")
+                .MinimumLevel.Information()
+                .CreateLogger();
 
-        private static ParserResult<object> OnVerbSetParsed(Parser parser,
-            Parsed<object> parsed,
-            IEnumerable<string> argsToParse,
-            bool containedHelpOrVersion)
-        {
-            return parsed.MapResult(
-                (IVerbSet verbSet) => verbSet.OnParse(parser, argsToParse),
-                (IVerb verb) =>
-                {
-                    verb.OnParse();
-                    return parsed;
-                },
-                (_) => parsed);
+            try
+            {
+                _ = Parser.Default.ParseVerbs(args, 
+                    typeof(CreateVerbSet),
+                    typeof(UpdateVerbSet),
+                    typeof(CompleteVerbSet),
+                    typeof(ListVerb));
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.Message);
+            }
         }
     }
 }

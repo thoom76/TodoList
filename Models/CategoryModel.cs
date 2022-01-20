@@ -5,8 +5,17 @@ namespace TodoList.Models;
 public class CategoryModel : IModel
 {
     [BsonId] 
-    public Guid Guid { get; init; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; } = null;
-    public IList<ObjectiveModel> Objectives { get; set; } = new List<ObjectiveModel>();
+    public Guid Guid { get; init; }
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public IList<ObjectiveModel> Objectives { get; set; }
+
+    [BsonCtor]
+    public CategoryModel(string name = "")
+    {
+        Guid = Guid.NewGuid();
+        Name = name;
+        Description = null;
+        Objectives = new List<ObjectiveModel>();
+    }
 }
