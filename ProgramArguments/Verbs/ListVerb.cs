@@ -1,7 +1,5 @@
-using System.Text;
 using CommandLine;
-using Spectre.Console;
-using TodoList.Models;
+using TodoList.Views;
 
 namespace TodoList.ProgramArguments.Verbs;
 
@@ -22,40 +20,6 @@ public class ListVerb : IVerb
 
     public void OnParse()
     {
-        var categories = new List<Panel>();
-        foreach (var category in Storage.GetAllModels<CategoryModel>())
-        {
-            var maxRowLength = 0;
-            var content = new StringBuilder();
-
-            var objectives = category.Objectives.Select(o =>
-            {
-                maxRowLength = Math.Max(maxRowLength, o.Name.Length);
-                return $"[orange1]{o.Name}[/]";
-            });
-            
-            // Create the content layout string within a category.
-            content.AppendJoin('\n', objectives);
-
-            if (content.Length == 0 )
-            {
-                content.Append("[green]No tasks![/]");
-            }
-            
-            // Append as much spaces to the last row in order for the category title to be visible.
-            content.Append(' ', Math.Max(category.Name.Length - maxRowLength, 0));
-
-            var panel = new Panel(content.ToString())
-                .Header(category.Name)
-                .HeaderAlignment(Justify.Center)
-                .RoundedBorder();
-            
-            categories.Add(panel);
-        }
-
-        AnsiConsole.Write(new Columns(categories)
-        {
-            Expand = Expand
-        });
+        ListView.ShowTotalView(Expand);
     }
 }

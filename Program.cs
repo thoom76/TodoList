@@ -12,6 +12,8 @@ namespace TodoList
     {
         private static void Main(string[] args)
         {
+            var parser = Parser.Default;
+
             // Configure Serilog to work with spectre console.
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Spectre("{Timestamp:HH:mm:ss} [{Level}] {Message:lj}{NewLine}{Exception}")
@@ -20,11 +22,22 @@ namespace TodoList
 
             try
             {
-                _ = Parser.Default.ParseVerbs(args, 
-                    typeof(CreateVerbSet),
-                    typeof(UpdateVerbSet),
-                    typeof(CompleteVerbSet),
-                    typeof(ListVerb));
+                var parsed = parser
+                    .ParseVerbSets(
+                        args,
+                        typeof(CreateVerbSet),
+                        typeof(UpdateVerbSet),
+                        typeof(CompleteVerbSet),
+                        typeof(ListVerb));
+                
+                // Map the verbs.
+                parsed.MapResult(
+                    (IVerb verb) =>
+                    {
+                        verb.OnParse();
+                        return parsed;
+                    },
+                    _ => parsed);
             }
             catch (Exception e)
             {
