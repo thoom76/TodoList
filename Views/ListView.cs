@@ -23,8 +23,8 @@ public static class ListView
                 maxRowLength = Math.Max(maxRowLength, o.Name.Length);
                 return o switch
                 {
-                    {Completed: true} => $"[green]{o.Name}[/]",
-                    _ => $"[orange1]{o.Name}[/]"
+                    {Completed: true} => $"[green]{Emoji.Known.CheckMark}[/] [grey]{o.Name}[/]",
+                    _ => $"{Emoji.Known.EightPointedStar} [orange1]{o.Name}[/]"
                 };
             });
             

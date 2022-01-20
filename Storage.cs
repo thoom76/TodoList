@@ -9,7 +9,8 @@ public class Storage : IDisposable
 
     static Storage()
     {
-        _db = new LiteDatabase("Todo.db");
+        var path = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/Todo.db";
+        _db = new LiteDatabase(path);
     }
     
     public static IEnumerable<TModel> GetAllModels<TModel>() 

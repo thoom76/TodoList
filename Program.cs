@@ -1,4 +1,5 @@
-﻿using CommandLine;
+﻿using System.Diagnostics;
+using CommandLine;
 using Serilog;
 using Serilog.Sinks.Spectre;
 using TodoList.Extensions;
@@ -41,7 +42,14 @@ namespace TodoList
             }
             catch (Exception e)
             {
-                Log.Error(e.Message);
+                if (Debugger.IsAttached)
+                {
+                    Log.Error(e, e.Message);   
+                }
+                else
+                {
+                    Log.Error(e.Message);
+                }
             }
         }
     }
