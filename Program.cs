@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using CommandLine;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Sinks.Spectre;
 using TodoList.Extensions;
@@ -48,7 +49,7 @@ namespace TodoList
                 }
                 else
                 {
-                    Log.Error(e.Message);
+                    Log.Error(e, e.Message);
                 }
             }
         }
