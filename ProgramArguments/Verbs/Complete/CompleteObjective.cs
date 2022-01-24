@@ -1,5 +1,6 @@
 using CommandLine;
 using Serilog;
+using TodoList.Extensions;
 using TodoList.Models;
 
 namespace TodoList.ProgramArguments.Verbs.Complete;
@@ -15,26 +16,53 @@ public class CompleteObjective : IVerb
     
     [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objective.")]
     public IList<string> Objectives { get; set; } = new List<string>();
-    
+
     [Option('f', "finished", Required = false, HelpText = "Set the finished state to true or false.")]
     public bool Finished { get; set; } = true;
     
     public void OnParse()
     {
         var category = Storage.GetModelByName<CategoryModel>(Category);
+        
+        // The category might be the index of the category.
+        if (category is null && int.TryParse(Category, out var categoryIndex))
+        {
+            categoryIndex -= 1;
+            var categories = Storage.GetAllModels<CategoryModel>().ToList();
+            var len = categories.Count;
+            if (0 <= categoryIndex && categoryIndex < len)
+            {
+                category = categories[categoryIndex];
+            }
+        }
+        
         if (category is null)
         {
             throw new Exception($"Can not find a category with name '{Category}'");
         }
 
-        foreach (var objectiveName in Objectives)
+        category.SortObjectives();
+        
+        var objectivesLength = category.Objectives.Count;
+        foreach (var objective in Objectives)
         {
-            var objective = category.Objectives.FirstOrDefault(o => o.Name == objectiveName);
-            if (objective is null)
+            var objectiveModel = category.Objectives.FirstOrDefault(o => o.Name == objective);
+            
+            // The category might be the index of the category.
+            if (objectiveModel is null && int.TryParse(objective, out var objectiveIndex))
             {
-                throw new Exception($"Can not find an objective with name '{objectiveName}'");
+                objectiveIndex -= 1;
+                if (0 <= objectiveIndex && objectiveIndex < objectivesLength)
+                {
+                    objectiveModel = category.Objectives[objectiveIndex];
+                }
             }
-            objective.Completed = Finished;
+            
+            if (objectiveModel is null)
+            {
+                throw new Exception($"Can not find an objective with name '{objective}'");
+            }
+            objectiveModel.Completed = Finished;
         }
 
         if (!Storage.UpdateModel(category))

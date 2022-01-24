@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using CommandLine;
-using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Sinks.Spectre;
 using TodoList.Extensions;

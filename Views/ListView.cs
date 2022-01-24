@@ -1,5 +1,6 @@
 using System.Text;
 using Spectre.Console;
+using TodoList.Extensions;
 using TodoList.Models;
 
 namespace TodoList.Views;
@@ -12,42 +13,65 @@ public static class ListView
     /// <param name="expand">Use the full width of the terminal console.</param>
     public static void ShowTotalView(bool expand = false)
     {
-        var categories = new List<Panel>();
+        var panels = new List<Panel>();
+
+        var categoryIndex = 0;
         foreach (var category in Storage.GetAllModels<CategoryModel>())
         {
-            var maxRowLength = 0;
-            var content = new StringBuilder();
-
-            var objectives = category.Objectives.Select(o =>
-            {
-                maxRowLength = Math.Max(maxRowLength, o.Name.Length);
-                return o switch
-                {
-                    {Completed: true} => $"[green]{Emoji.Known.CheckMark}[/] [grey]{o.Name}[/]",
-                    _ => $"{Emoji.Known.EightPointedStar} [orange1]{o.Name}[/]"
-                };
-            });
+            categoryIndex++;
+            category.SortObjectives();
             
-            // Create the content layout string within a category.
-            content.AppendJoin('\n', objectives);
+            var categoryTable = new Table()
+                .AddColumns("id", "task")
+                .Centered()
+                .NoBorder()
+                .Collapse()
+                .HideHeaders();
 
-            if (content.Length == 0 )
+            var objectivesLength = category.Objectives.Count;
+            var maxTaskNameSize = 0;
+            var taskCount = 0;
+            var currentTask = category.Objectives.FirstOrDefault();
+
+            while (currentTask is {Completed: false} && taskCount < objectivesLength)
             {
-                content.Append("[green]No tasks![/]");
+                maxTaskNameSize = Math.Max(maxTaskNameSize, currentTask.Name.Length);
+                categoryTable.AddRow((++taskCount).ToString(), $"{Emoji.Known.EightPointedStar} [orange1]{currentTask.Name}[/]");
+                if (taskCount < objectivesLength)
+                {
+                    currentTask = category.Objectives[taskCount];
+                }
             }
             
-            // Append as much spaces to the last row in order for the category title to be visible.
-            content.Append(' ', Math.Max(category.Name.Length - maxRowLength, 0));
+            if (taskCount > 0 && objectivesLength - taskCount > 0)
+            {
+                // Divide line between active and completed tasks.
+                categoryTable.AddRow("", $"[grey]{new StringBuilder().Append('—', maxTaskNameSize + 2)}[/]");
+            }
 
-            var panel = new Panel(content.ToString())
-                .Header(category.Name)
+            while (currentTask is {Completed: true} && taskCount < objectivesLength)
+            {
+                maxTaskNameSize = Math.Max(maxTaskNameSize, currentTask.Name.Length);
+                categoryTable.AddRow((++taskCount).ToString(), $"[green]{Emoji.Known.CheckMark}[/] [grey]{currentTask.Name}[/]");
+                if (taskCount < objectivesLength)
+                {
+                    currentTask = category.Objectives[taskCount];
+                }
+            }
+
+            // 7 = leftMargin (1) + rightMargin (2) + columnMargin(2) + nameColumnPrefix (2).
+            var width = 7 + category.Objectives.Count.ToString().Length + maxTaskNameSize;
+            // 3 = the '<' before and '> ' after the category number.
+            categoryTable.Width(Math.Max(width, category.Name.Length + categoryIndex.ToString().Length + 3));
+
+            panels.Add(new Panel(categoryTable)
+                .Header($"<{categoryIndex}> {category.Name}")
                 .HeaderAlignment(Justify.Center)
-                .RoundedBorder();
-            
-            categories.Add(panel);
+                .Padding(0,0,0,0)
+                .RoundedBorder());
         }
 
-        AnsiConsole.Write(new Columns(categories)
+        AnsiConsole.Write(new Columns(panels)
         {
             Expand = expand
         });

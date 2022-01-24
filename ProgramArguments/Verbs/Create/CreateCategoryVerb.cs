@@ -18,7 +18,7 @@ public class CreateCategoryVerb : IVerb
     public string? Description { get; set; } = null;
         
     [Option('o', "objectives", Required = false, Separator = ',', HelpText = "A list of objective names to add to the newly created category.")]
-    public IList<ObjectiveModel> Objectives { get; set; } = new List<ObjectiveModel>();
+    public List<ObjectiveModel> Objectives { get; set; } = new List<ObjectiveModel>();
 
     public void OnParse()
     {

@@ -1,7 +1,4 @@
-using System.Configuration;
 using Microsoft.Extensions.Configuration;
-using Serilog;
-using Spectre.Console.Cli;
 
 namespace TodoList;
 
