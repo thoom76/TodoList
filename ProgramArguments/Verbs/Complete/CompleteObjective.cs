@@ -17,8 +17,8 @@ public class CompleteObjective : IVerb
     [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objective.")]
     public IList<string> Objectives { get; set; } = new List<string>();
 
-    [Option('f', "finished", Required = false, HelpText = "Set the finished state to true or false.")]
-    public bool Finished { get; set; } = true;
+    [Option('u', "unfinished", Required = false, HelpText = "Set the finished state to true or false.")]
+    public bool Unfinished { get; set; }
     
     public void OnParse()
     {
@@ -62,7 +62,7 @@ public class CompleteObjective : IVerb
             {
                 throw new Exception($"Can not find an objective with name '{objective}'");
             }
-            objectiveModel.Completed = Finished;
+            objectiveModel.Completed = !Unfinished;
         }
 
         if (!Storage.UpdateModel(category))
@@ -73,7 +73,7 @@ public class CompleteObjective : IVerb
         Log.Information("Objectives {objectiveName} within {categoryName} are set to {status}", 
             string.Join(',', Objectives), 
             Category, 
-            Finished ? "Finished" : "Todo"
+            Unfinished ? "Todo" : "Finished"
         );
     }
 }
