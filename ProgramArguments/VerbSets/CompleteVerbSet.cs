@@ -8,5 +8,5 @@ namespace TodoList.ProgramArguments.VerbSets;
 public class CompleteVerbSet : IVerbSet
 {
     public ParserResult<object> OnParse(Parser parser, IEnumerable<string> argsToParse) =>
-        parser.ParseVerbSets(argsToParse, typeof(CompleteObjective));
+        parser.ParseVerbSets(argsToParse, typeof(CompleteObjectiveVerb));
 }

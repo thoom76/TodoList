@@ -1,4 +1,5 @@
 using LiteDB;
+using TodoList.Extensions;
 using TodoList.Models;
 
 namespace TodoList;
@@ -40,6 +41,40 @@ public class Storage : IDisposable
             .SingleOrDefault();
     }
 
+    public static TCategoryModel GetCategoryByNameOrIndex<TCategoryModel>(string nameOrIndex)
+        where TCategoryModel : CategoryModel
+    {
+        var model = GetModelByName<TCategoryModel>(nameOrIndex);
+        if (model is not null)
+        {
+            return model;
+        }
+        
+        // The input might be the index of the category.
+        if (!int.TryParse(nameOrIndex, out var modelIndex))
+        {
+            throw new Exception($"Can not find a model with name or index '{nameOrIndex}'");
+        }
+        
+        modelIndex -= 1;
+        var models = GetAllModels<TCategoryModel>()
+            .SortCategories()!
+            .ToList();
+        var len = models.Count;
+
+        if (len == 0)
+        {
+            throw new Exception($"No models found for type '{typeof(TCategoryModel).FullName}'!");
+        }
+        
+        if (0 > modelIndex || modelIndex >= len)
+        {
+            throw new Exception($"Model index out of range [0,{len-1}] but is actually '{modelIndex}'");
+        }
+        
+        return (TCategoryModel) models[modelIndex];
+    }
+
     public static TModel? GetModelById<TModel>(Guid id)
         where TModel : IModel
     {
@@ -61,6 +96,13 @@ public class Storage : IDisposable
         return collection.Update(model);
     }
 
+    public static bool DeleteModel<TModel>(TModel model)
+        where TModel : IModel
+    {
+        var collection = _db.GetCollection<TModel>(typeof(TModel).Name);
+        return collection.Delete(model.Guid);
+    }
+    
     public void Dispose()
     {
         _db.Dispose();

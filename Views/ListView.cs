@@ -15,8 +15,18 @@ public static class ListView
     {
         var panels = new List<Panel>();
 
+        var categories = Storage
+            .GetAllModels<CategoryModel>()
+            .SortCategories();
+
+        if (categories is null)
+        {
+            AnsiConsole.Write("[orange]No todo's created (yet)[/]");
+            return;
+        }
+
         var categoryIndex = 0;
-        foreach (var category in Storage.GetAllModels<CategoryModel>())
+        foreach (var category in categories)
         {
             categoryIndex++;
             category.SortObjectives();
@@ -31,6 +41,14 @@ public static class ListView
             var objectivesLength = category.Objectives.Count;
             var maxTaskNameSize = 0;
             var taskCount = 0;
+            
+            if (objectivesLength == 0)
+            {
+                const string emptyMessage = "[green]Empty![/]";
+                categoryTable.AddRow(emptyMessage);
+                maxTaskNameSize = emptyMessage.Length;
+            }
+
             var currentTask = category.Objectives.FirstOrDefault();
 
             while (currentTask is {Completed: false} && taskCount < objectivesLength)
@@ -42,7 +60,7 @@ public static class ListView
                     currentTask = category.Objectives[taskCount];
                 }
             }
-            
+
             if (taskCount > 0 && objectivesLength - taskCount > 0)
             {
                 // Divide line between active and completed tasks.

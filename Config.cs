@@ -2,11 +2,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace TodoList;
 
-
 public static class Config
 {
     private static IConfiguration? _config;
-    public static IConfiguration? Configuration {
+
+    private static IConfiguration? Configuration {
         get {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -16,5 +16,5 @@ public static class Config
         }
     }
     
-    public static string DatabasePath = Configuration!["AppSettings:DatabasePath"];
+    public static readonly string DatabasePath = Configuration!["AppSettings:DatabasePath"];
 }

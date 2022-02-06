@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommandLine;
 using Serilog;
 using TodoList.Models;
@@ -18,7 +19,7 @@ public class CreateCategoryVerb : IVerb
     public string? Description { get; set; } = null;
         
     [Option('o', "objectives", Required = false, Separator = ',', HelpText = "A list of objective names to add to the newly created category.")]
-    public List<ObjectiveModel> Objectives { get; set; } = new List<ObjectiveModel>();
+    public IList<string> Objectives { get; set; } = new List<string>();
 
     public void OnParse()
     {
@@ -27,12 +28,28 @@ public class CreateCategoryVerb : IVerb
             throw new Exception($"Can not add a category with the same {nameof(Name)} '{Name}'!");
         }
 
-        var modelGuid = Storage.InsertModel(new CategoryModel
+        var newCategory = new CategoryModel
         {
             Name = Name,
-            Description = Description,
-            Objectives = Objectives
-        });
+            Description = Description
+        };
+
+        var existingCategoryNames = new HashSet<string>();
+        foreach (var objectiveName in Objectives)
+        {
+            if (!existingCategoryNames.Add(objectiveName))
+            {
+                throw new Exception($"Can not add an objective with the same description '{objectiveName}'!");
+            }
+            
+            newCategory.Objectives.Add(new ObjectiveModel
+            {
+                Name = objectiveName,
+                Description = Description
+            });
+        }
+
+        var modelGuid = Storage.InsertModel(newCategory);
         
         Log.Information("{category} with ID {id} created.", nameof(CategoryModel), modelGuid);
     }
