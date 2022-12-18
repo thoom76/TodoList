@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using CommandLine;
 using Serilog;
 using TodoList.Models;

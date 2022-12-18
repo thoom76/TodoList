@@ -96,13 +96,15 @@ public class Storage : IDisposable
         return collection.Update(model);
     }
 
-    public static bool DeleteModel<TModel>(Guid id)
+    public static bool DeleteModel<TModel>(TModel model) 
+        where TModel : IModel
     {
         var collection = GetCollection<TModel>();
-        return collection.Delete(id);
+        return collection.Delete(model.Guid);
     }
 
-    private static ILiteCollection<TModel> GetCollection<TModel>()
+    private static ILiteCollection<TModel> GetCollection<TModel>() 
+        where TModel : IModel
     {
         return _db.GetCollection<TModel>(typeof(TModel).Name);
     }

@@ -1,7 +1,5 @@
 using CommandLine;
 using TodoList.Extensions;
-using TodoList.ProgramArguments.Verbs.Complete;
-using TodoList.ProgramArguments.Verbs.Create;
 using TodoList.ProgramArguments.Verbs.Delete;
 
 namespace TodoList.ProgramArguments.VerbSets;

@@ -30,7 +30,6 @@ namespace TodoList
                         typeof(UpdateVerbSet),
                         typeof(DeleteVerbSet),
                         typeof(CompleteVerbSet),
-                        typeof(DeleteVerbSet),
                         typeof(ListVerb));
                 
                 // Map the verbs.
