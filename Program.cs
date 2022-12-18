@@ -28,6 +28,7 @@ namespace TodoList
                         args,
                         typeof(CreateVerbSet),
                         typeof(UpdateVerbSet),
+                        typeof(DeleteVerbSet),
                         typeof(CompleteVerbSet),
                         typeof(ListVerb));
                 

@@ -59,10 +59,14 @@ public static class ListView
                 }
             }
 
-            // 7 = leftMargin (1) + rightMargin (2) + columnMargin(2) + nameColumnPrefix (2).
-            var width = 7 + category.Objectives.Count.ToString().Length + maxTaskNameSize;
-            // 3 = the '<' before and '> ' after the category number.
-            categoryTable.Width(Math.Max(width, category.Name.Length + categoryIndex.ToString().Length + 3));
+            const int leftMargin = 2; // Just the margin spectre.console takes.
+            const int rightMargin = 2; // Just the margin spectre.console takes.
+            const int columnMargin = 2; // Just the margin spectre.console takes.
+            const int nameColumnPrefix = 2; // '✴ ' or '✔ ' before the name column.
+            const int categoryPrefix = 3; // 3 = the '<' before and '> ' after the category number.
+            
+            var width = leftMargin + rightMargin + columnMargin + nameColumnPrefix + category.Objectives.Count.ToString().Length + maxTaskNameSize;
+            categoryTable.Width(Math.Max(width, categoryPrefix + leftMargin + rightMargin + category.Name.Length + categoryIndex.ToString().Length));
 
             panels.Add(new Panel(categoryTable)
                 .Header($"<{categoryIndex}> {category.Name}")

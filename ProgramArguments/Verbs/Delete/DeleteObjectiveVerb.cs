@@ -3,23 +3,20 @@ using Serilog;
 using TodoList.Extensions;
 using TodoList.Models;
 
-namespace TodoList.ProgramArguments.Verbs.Complete;
+namespace TodoList.ProgramArguments.Verbs.Delete;
 
 /// <summary>
 /// The sub-verb used to create a category.
 /// </summary>
-[Verb("objective", HelpText = "Complete a certain objective.")]
-public class CompleteObjective : IVerb
+[Verb("objective", HelpText = "Delete a certain objective.")]
+public class DeleteObjectiveVerb : IVerb
 {
     [Option('c', "category", Required = true, HelpText = "The name of the category.")]
     public string Category { get; set; } = string.Empty;
     
-    [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objective.")]
-    public IList<string> Objectives { get; set; } = new List<string>();
+    [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objectives.")]
+    public IEnumerable<string> Objectives { get; set; } = Array.Empty<string>();
 
-    [Option('u', "unfinished", Required = false, HelpText = "Set the finished state to true or false.")]
-    public bool Unfinished { get; set; }
-    
     public void OnParse()
     {
         var category = Storage.GetModelByName<CategoryModel>(Category);
@@ -62,18 +59,21 @@ public class CompleteObjective : IVerb
             {
                 throw new Exception($"Can not find an objective with name '{objective}'");
             }
-            objectiveModel.Completed = !Unfinished;
+            
+            if (!category.Objectives.Remove(objectiveModel))
+            {
+                throw new Exception($"Failed to remove objective with name '{objective}'");
+            }
         }
 
         if (!Storage.UpdateModel(category))
         {
-            throw new Exception($"Failed to insert an objective to category '{Category}'");
+            throw new Exception($"Failed to delete an objective from category '{Category}'");
         };
         
-        Log.Information("Objectives {objectiveName} within {categoryName} are set to {status}", 
+        Log.Information("Objectives {objectiveNames} within {categoryName} are deleted", 
             string.Join(',', Objectives), 
-            Category, 
-            Unfinished ? "Todo" : "Finished"
+            Category
         );
     }
 }

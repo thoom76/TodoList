@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using CommandLine;
 using Serilog;
 using TodoList.Models;
@@ -16,9 +17,9 @@ public class CreateCategoryVerb : IVerb
                 
     [Option('d', "description", Required = false, HelpText = "The Description of the category.")]
     public string? Description { get; set; } = null;
-        
+
     [Option('o', "objectives", Required = false, Separator = ',', HelpText = "A list of objective names to add to the newly created category.")]
-    public List<ObjectiveModel> Objectives { get; set; } = new List<ObjectiveModel>();
+    public IEnumerable<ObjectiveModel> Objectives { get; set; } = Array.Empty<ObjectiveModel>();
 
     public void OnParse()
     {
@@ -31,7 +32,7 @@ public class CreateCategoryVerb : IVerb
         {
             Name = Name,
             Description = Description,
-            Objectives = Objectives
+            Objectives = Objectives.ToList()
         });
         
         Log.Information("{category} with ID {id} created.", nameof(CategoryModel), modelGuid);
