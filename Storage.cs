@@ -10,17 +10,19 @@ public class Storage : IDisposable
 
     static Storage()
     {
-        _db = new LiteDatabase(Config.DatabasePath);
+        var path = Config.DatabasePath;
+        _db = new LiteDatabase(path);
+        if (!File.Exists(path))
+        {
+            File.Create(path);
+        }
     }
     
     public static IEnumerable<TModel> GetAllModels<TModel>() 
         where TModel : IModel
     {
         var collection = GetCollection<TModel>();
-        var col = collection.Query()
-            .ToEnumerable();
-
-        return col;
+        return collection.Query().ToEnumerable();
     }
     
     public static IEnumerable<TModel> GetModelsByName<TModel>(string name) 
