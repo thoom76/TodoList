@@ -6,7 +6,7 @@ using TodoList.Models;
 namespace TodoList.ProgramArguments.Verbs.Complete;
 
 /// <summary>
-/// The sub-verb used to create a category.
+/// The sub-verb used to create an objective.
 /// </summary>
 [Verb("objective", HelpText = "Complete a certain objective.")]
 public class CompleteObjectiveVerb : IVerb
@@ -14,35 +14,23 @@ public class CompleteObjectiveVerb : IVerb
     [Option('c', "category", Required = true, HelpText = "The name of the category.")]
     public string Category { get; set; } = string.Empty;
     
-    [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objective.")]
-    public IEnumerable<string> Objectives { get; set; } = Array.Empty<string>();
+    [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objectives to finish within a certain category.")]
+    public IList<string> Objectives { get; set; } = new List<string>();
 
     [Option('u', "unfinished", Required = false, HelpText = "Set the finished state to true or false.")]
     public bool Unfinished { get; set; }
     
     public void OnParse()
     {
-        var category = Storage.GetModelByName<CategoryModel>(Category);
-        
-        // The category might be the index of the category.
-        if (category is null && int.TryParse(Category, out var categoryIndex))
-        {
-            categoryIndex -= 1;
-            var categories = Storage.GetAllModels<CategoryModel>().ToList();
-            var len = categories.Count;
-            if (0 <= categoryIndex && categoryIndex < len)
-            {
-                category = categories[categoryIndex];
-            }
-        }
+        var category = Storage
+            .GetCategoryByNameOrIndex<CategoryModel>(Category)
+            .SortObjectives();
         
         if (category is null)
         {
             throw new Exception($"Can not find a category with name '{Category}'");
         }
 
-        category.SortObjectives();
-        
         var objectivesLength = category.Objectives.Count;
         foreach (var objective in Objectives)
         {
@@ -60,7 +48,7 @@ public class CompleteObjectiveVerb : IVerb
             
             if (objectiveModel is null)
             {
-                throw new Exception($"Can not find an objective with name '{objective}'");
+                throw new Exception($"Can not find an objective with name or index: '{objective}'");
             }
             objectiveModel.Completed = !Unfinished;
         }

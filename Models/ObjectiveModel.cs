@@ -2,19 +2,38 @@ using LiteDB;
 
 namespace TodoList.Models;
 
-public class ObjectiveModel : IModel
+public class ObjectiveModel : IModel, IComparable<ObjectiveModel>
 {
     [BsonId] 
-    public Guid Guid { get; init; }
-    public string Name { get; set; }
-    public string? Description { get; set; }
-    public bool Completed { get; set; }
+    public Guid Guid { get; init; } = Guid.NewGuid();
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; } = null;
+    public int Priority { get; set; } = 0;
+    public bool Completed { get; set; } = false;
 
-    [BsonCtor]
-    public ObjectiveModel(string name = "")
+    public int CompareTo(ObjectiveModel? other)
     {
-        Guid = Guid.NewGuid();
-        Name = name;
-        Description = null;
+        if (other is null)
+        {
+            return 1;
+        }
+        
+        if (Priority > other.Priority)
+        {
+            return 1;
+        }
+
+        if (Priority < other.Priority)
+        {
+            return -1;
+        }
+        
+        // Place completed objectives underneath the open tasks.
+        if (Completed != other.Completed)
+        {
+            return Completed ? 1 : -1;
+        }
+        
+        return string.CompareOrdinal(Name, other.Name);
     }
 }

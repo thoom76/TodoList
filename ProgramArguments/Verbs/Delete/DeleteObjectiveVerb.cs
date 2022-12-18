@@ -6,7 +6,7 @@ using TodoList.Models;
 namespace TodoList.ProgramArguments.Verbs.Delete;
 
 /// <summary>
-/// The sub-verb used to create a category.
+/// The sub-verb used to delete an objective.
 /// </summary>
 [Verb("objective", HelpText = "Delete a certain objective.")]
 public class DeleteObjectiveVerb : IVerb
@@ -14,66 +14,29 @@ public class DeleteObjectiveVerb : IVerb
     [Option('c', "category", Required = true, HelpText = "The name of the category.")]
     public string Category { get; set; } = string.Empty;
     
-    [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objectives.")]
-    public IEnumerable<string> Objectives { get; set; } = Array.Empty<string>();
-
+    [Option('o', "objectives", Required = true, Separator = ',', HelpText = "The name of the objectives to delete within a certain category.")]
+    public IList<string> Objectives { get; set; } = new List<string>();
+    
     public void OnParse()
     {
-        var category = Storage.GetModelByName<CategoryModel>(Category);
-        
-        // The category might be the index of the category.
-        if (category is null && int.TryParse(Category, out var categoryIndex))
-        {
-            categoryIndex -= 1;
-            var categories = Storage.GetAllModels<CategoryModel>().ToList();
-            var len = categories.Count;
-            if (0 <= categoryIndex && categoryIndex < len)
-            {
-                category = categories[categoryIndex];
-            }
-        }
-        
-        if (category is null)
-        {
-            throw new Exception($"Can not find a category with name '{Category}'");
-        }
+        var category = Storage
+            .GetCategoryByNameOrIndex<CategoryModel>(Category)
+            .SortObjectives()!;
 
-        category.SortObjectives();
-        
-        var objectivesLength = category.Objectives.Count;
         foreach (var objective in Objectives)
         {
-            var objectiveModel = category.Objectives.FirstOrDefault(o => o.Name == objective);
-            
-            // The category might be the index of the category.
-            if (objectiveModel is null && int.TryParse(objective, out var objectiveIndex))
-            {
-                objectiveIndex -= 1;
-                if (0 <= objectiveIndex && objectiveIndex < objectivesLength)
-                {
-                    objectiveModel = category.Objectives[objectiveIndex];
-                }
-            }
-            
-            if (objectiveModel is null)
-            {
-                throw new Exception($"Can not find an objective with name '{objective}'");
-            }
-            
+            var objectiveModel = category.GetObjectiveByNameOrIndex(objective);
             if (!category.Objectives.Remove(objectiveModel))
             {
-                throw new Exception($"Failed to remove objective with name '{objective}'");
+                throw new Exception($"Failed to remove objective '{objective}' from category '{category.Name}'");
             }
         }
-
+        
         if (!Storage.UpdateModel(category))
         {
-            throw new Exception($"Failed to delete an objective from category '{Category}'");
+            throw new Exception($"Failed to delete an objective to category '{Category}'");
         };
-        
-        Log.Information("Objectives {objectiveNames} within {categoryName} are deleted", 
-            string.Join(',', Objectives), 
-            Category
-        );
+
+        Log.Information("objectives {objectiveNames} deleted from {category}", string.Join(';', Objectives), Category);
     }
 }
